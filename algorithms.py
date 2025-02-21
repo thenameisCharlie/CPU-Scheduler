@@ -14,5 +14,4 @@ p8 = [4, 14, 5, 33, 6, 51, 14, 73, 16, 87, 6]
 #User input to determine which algorithm to run
 algorithmSelection = input("Please choose an algorithm to run: \n1. First Come First Serve (FCFS)\n2. Shortest Job First (SJF)\n3. Multilevel Feedback Queue Scheduling (MLFQ)\n")
 
-
-
+#Function with the FCFS algorithm implementation 
