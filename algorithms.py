@@ -20,9 +20,38 @@ if algorithmSelection == "1":
     def FCFS(process_data):
 
         ready_queue = deque(process_data.keys())
-        currentTime = 0
+        io_queue = [] #min-heap queue will track I/O to ensure first in first out
+        systemCurrentTime = 0
 
-        
-        return ready_queue
+        while ready_queue or io_queue:
+            if ready_queue:
+                current_process = ready_queue.popleft() #get the first process in the queue
+                bursts = process_data[current_process] #get the burst times for the current process
+                print("Current Process: ", current_process)
+
+                if bursts:
+                    cpu_burst = bursts.pop(0) #Runs the process for the CPU burst time
+                    print(f"Time {systemCurrentTime}: {current_process} running for {cpu_burst} units")
+                    systemCurrentTime += cpu_burst #increment the current time by the CPU burst time
+                    print(f"Time {systemCurrentTime}: {current_process} finished CPU burst")
+
+                    if bursts:
+                        io_burst = bursts.pop(0)
+                        completionTime = systemCurrentTime + io_burst #total time a process waits and executes
+                        heapq.heappush(io_queue, (completionTime, current_process)) #using a min-heap to track I/O burst
+                        print(f"Time {systemCurrentTime}: {current_process} performing I/O for {io_burst} units")
+            
+            #If ready queue is empty, jump to the next I/O completion time
+            if not ready_queue and io_queue:
+                systemCurrentTime = io_queue[0][0]
+
+            #Check if the I/O queue is not empty and the first process in the queue has a completion time less than or equal to the current time
+            while io_queue and io_queue[0][0] <= systemCurrentTime:
+                completionTime, current_process = heapq.heappop(io_queue) #pop the first process in the I/O queue and assign it to the current process
+                systemCurrentTime = completionTime #update the current time to the completion time 
+                ready_queue.append(current_process)
+                print(f"Time {systemCurrentTime}: {current_process} finished I/O")
+            
+            
     
     print(FCFS(process_data))
