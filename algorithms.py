@@ -25,14 +25,15 @@ def FCFS(process_data):
     systemCurrentTime = 0 
     executionOrder = [] #This list will store the order in which the processes are executed 
 
-    completionTimes = {} #This dictionary will store the completion time for each process (will be used for calculating turnaround time)
+    completionTimeList = {} #This dictionary will store the completion time for each process (will be used for calculating turnaround time)
     firstCPUTime = {} #This dictionary will store the first CPU time for each process (will be used for calculating response time)
     totalCPUTime = {p: sum(process_data[p][::2]) for p in process_data} #This dictionary will store the total CPU time for each process (will be used for calculating CPU utilization/waiting times)
+    systemIdleTime = 0
 
     while ready_queue or io_queue:
 
         # Display context switch details
-        print("\n🔹 Context Switch:")
+        print("\n **Current System State**")
         print(f"🔹 Current Execution Time: {systemCurrentTime}")
         print(f"🔹 Ready Queue: {[(p, process_data[p][0]) for p in ready_queue]}")  # Show next CPU bursts
         print(f"🔹 I/O Queue: {[(p, t) for t, p in io_queue]}")  # Show remaining I/O time
@@ -44,6 +45,7 @@ def FCFS(process_data):
 
             if current_process not in firstCPUTime:
                 firstCPUTime[current_process] = systemCurrentTime
+                print(f"Process {current_process} first entered CPU at {systemCurrentTime}") #debugging purposes
 
             if bursts:
                 cpu_burst = bursts.pop(0) #Runs the process for the CPU burst time
@@ -51,8 +53,8 @@ def FCFS(process_data):
                 systemCurrentTime += cpu_burst #increment the current time by the CPU burst time     
                 print(f"🔹 Time {systemCurrentTime}: {current_process} finished CPU burst")  
 
-                if not bursts:
-                    completionTimes[current_process] = systemCurrentTime        
+                if not bursts: 
+                    completionTimeList[current_process] = systemCurrentTime        
 
                 if bursts:
                     io_burst = bursts.pop(0)
@@ -61,7 +63,11 @@ def FCFS(process_data):
                     print(f"🔹 Time {systemCurrentTime}: {current_process} performing I/O for {io_burst} units")
             
         if not ready_queue and io_queue:
-            systemCurrentTime = io_queue[0][0] #set the current time to the completion time of the first process in the I/O queue if the ready queue is empty
+            systemIdleTime += max(0, io_queue[0][0] - systemCurrentTime) #calculate the system idle time (max() ensures that the idle time is not negative)
+            systemCurrentTime = io_queue[0][0] #if the ready queue is empty, set the current time to the completion time of the first process in the I/O queue
+            print(f"🔹 Time {systemCurrentTime}: System is idle") #debugging purposes
+            print(f"{systemIdleTime} units of idle time") #debugging purposes
+            
         
 
         #Check if the I/O queue is not empty and the first process in the queue has a completion time less than or equal to the current time to return to the ready queue
@@ -72,23 +78,23 @@ def FCFS(process_data):
             print(f"🔹 Time {systemCurrentTime}: {current_process} finished I/O and moved back to Ready Queue")
 
 
-    return executionOrder, completionTimes, firstCPUTime, totalCPUTime, systemCurrentTime
+    return executionOrder, completionTimeList, firstCPUTime, totalCPUTime, systemCurrentTime, systemIdleTime
 
 #function that computes Ttr, Tw, Tr for each process
-def calculate_metrics(completionTimes, firstCPUTime, totalCPUTime):
+def calculate_metrics(completionTimeList, firstCPUTime, totalCPUTime):
     turnaroundTimes = {}
     waitingTimes = {}
     responseTimes = {}
 
-    totalProcesses = len(completionTimes)
+    totalProcesses = len(completionTimeList)
 
     totalTurnaroundTime = 0
     totalWaitingTime = 0
     totalResponseTime = 0
 
     # Calculate Ttr, Tw, Tr for each process
-    for process in completionTimes:
-        Ttr = completionTimes[process]
+    for process in completionTimeList:
+        Ttr = completionTimeList[process]
         Tw = Ttr - totalCPUTime[process]
         Tr = firstCPUTime[process]
 
@@ -108,9 +114,9 @@ def calculate_metrics(completionTimes, firstCPUTime, totalCPUTime):
 
 
 #Function that calculates the CPU utilization 
-def calculate_cpu_utilization(totalCPUTime, systemCurrentTime):
+def calculate_cpu_utilization(systemCurrentTime, systemIdleTime):
     
-    totalCPUExecutionTime = sum(totalCPUTime.values())  # Sum of all CPU bursts
+    totalCPUExecutionTime = systemCurrentTime - systemIdleTime # Total time spent executing processes (excluding idle time)
     cpuUtilization = (totalCPUExecutionTime / systemCurrentTime) * 100
     print(f"Total CPU Execution Time: {totalCPUExecutionTime} units")
     print(f"Total System Time: {systemCurrentTime} units")
@@ -119,7 +125,7 @@ def calculate_cpu_utilization(totalCPUTime, systemCurrentTime):
 
 
 #Print the results of the simulation
-def print_results(systemCurrentTime, cpuUtilization, avgTurnaroundTime, avgWaitingTime, avgResponseTime, completionTimes, waitingTimes, firstCPUTime):
+def print_results(systemCurrentTime, cpuUtilization, avgTurnaroundTime, avgWaitingTime, avgResponseTime, completionTimeList, waitingTimes, firstCPUTime):
     print("\n🔹 **Final Simulation Results**")
     print(f"Total Time to Complete All Processes: {systemCurrentTime} units")
     print(f"CPU Utilization: {cpuUtilization:.2f}%")
@@ -128,8 +134,8 @@ def print_results(systemCurrentTime, cpuUtilization, avgTurnaroundTime, avgWaiti
     print(f"Avg Response Time (Tr): {avgResponseTime:.2f}")
 
         # Create table of per-process breakdown
-    tableData = [[p, completionTimes[p], waitingTimes[p], firstCPUTime[p]]
-        for p in sorted(completionTimes.keys())]
+    tableData = [[p, completionTimeList[p], waitingTimes[p], firstCPUTime[p]]
+        for p in sorted(completionTimeList.keys())]
     
     # Print table of per-process breakdown
     print("\n🔹 **Per-Process Breakdown**")
@@ -139,10 +145,10 @@ def print_results(systemCurrentTime, cpuUtilization, avgTurnaroundTime, avgWaiti
 
 #conditions that will determine which algorithm to run
 if algorithmSelection == "1":
-    executionOrder, completionTimes, firstCPUTime, totalCPUTime, systemCurrentTime = FCFS(process_data)
-    turnaroundTimes, waitingTimes, responseTimes, avgTurnaroundTime, avgWaitingTime, avgResponseTime = calculate_metrics(completionTimes, firstCPUTime, totalCPUTime)
-    cpuUtilization = calculate_cpu_utilization(totalCPUTime, systemCurrentTime)
-    print_results(systemCurrentTime, cpuUtilization, avgTurnaroundTime, avgWaitingTime, avgResponseTime, completionTimes, waitingTimes, firstCPUTime)
+    executionOrder, completionTimeList, firstCPUTime, totalCPUTime, systemCurrentTime, systemIdleTime  = FCFS(process_data)
+    turnaroundTimes, waitingTimes, responseTimes, avgTurnaroundTime, avgWaitingTime, avgResponseTime = calculate_metrics(completionTimeList, firstCPUTime, totalCPUTime)
+    cpuUtilization = calculate_cpu_utilization(systemCurrentTime, systemIdleTime)
+    print_results(systemCurrentTime, cpuUtilization, avgTurnaroundTime, avgWaitingTime, avgResponseTime, completionTimeList, waitingTimes, firstCPUTime)
 
 
 elif algorithmSelection == "2":
