@@ -27,7 +27,6 @@ if algorithmSelection == "1":
             if ready_queue:
                 current_process = ready_queue.popleft() #get the first process in the queue
                 bursts = process_data[current_process] #get the burst times for the current process
-                print("Current Process: ", current_process)
 
                 if bursts:
                     cpu_burst = bursts.pop(0) #Runs the process for the CPU burst time
