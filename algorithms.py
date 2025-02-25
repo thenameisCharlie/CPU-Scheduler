@@ -30,11 +30,14 @@ def FCFS(process_data):
     totalCPUTime = {p: sum(process_data[p][::2]) for p in process_data} #This dictionary will store the total CPU time for each process (will be used for calculating CPU utilization/waiting times)
     systemIdleTime = 0
 
-        while ready_queue or io_queue:
-            if ready_queue:
-                current_process = ready_queue.popleft() #get the first process in the queue
-                bursts = process_data[current_process] #get the burst times for the current process
-                print("Current Process: ", current_process)
+    while ready_queue or io_queue:
+        if ready_queue:
+            current_process = ready_queue.popleft() #get the first process in the queue
+            bursts = process_data[current_process] #get the burst times for the current process
+            print("Current Process: ", current_process)
+
+            if current_process not in firstCPUTime:
+                firstCPUTime[current_process] = systemCurrentTime
 
             if bursts:
                 cpu_burst = bursts.pop(0) #Runs the process for the CPU burst time
@@ -57,15 +60,12 @@ def FCFS(process_data):
             print(f"🔹 Time {systemCurrentTime}: System is idle") #debugging purposes
             print(f"{systemIdleTime} units of idle time") #debugging purposes
             
-        
-
         #Check if the I/O queue is not empty and the first process in the queue has a completion time less than or equal to the current time to return to the ready queue
         while io_queue and io_queue[0][0] <= systemCurrentTime:
             completionTime, current_process = heapq.heappop(io_queue) #pop the first process in the I/O queue and assign it to the current process
             systemCurrentTime = completionTime
             ready_queue.append(current_process) 
             print(f"🔹 Time {systemCurrentTime}: {current_process} finished I/O and moved back to Ready Queue")
-
 
     return executionOrder, completionTimeList, firstCPUTime, totalCPUTime, systemCurrentTime, systemIdleTime
 
