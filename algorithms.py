@@ -93,6 +93,10 @@ def fcfs_scheduling(processes):
     ]
     print(tabulate(results_table, headers="firstrow", tablefmt="grid"))
 
+#SJF Algorithm
+def sjf_scheduling(processes):
+    print("SJF Algorithm not yet implemented.")
+
 # User input to choose algorithm
 algorithmSelection = input("Please choose an algorithm to run:\n1. First Come First Serve (FCFS)\n2. Shortest Job First (SJF)\n3. Multilevel Feedback Queue Scheduling (MLFQ)\n")
 
@@ -110,6 +114,7 @@ if algorithmSelection == "1":
 
 elif algorithmSelection == "2":
     print("SJF Algorithm not yet implemented.")
+
 
 elif algorithmSelection == "3":
     print("MLFQ Algorithm not yet implemented.")
