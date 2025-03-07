@@ -80,22 +80,22 @@ def perform_sjf_scheduling(processes, readyQueue, processBurstIndex):
     print("\nWaiting Time")
     twt = sum(waitingTime)
     for i in range(len(processes)):
-        print(f"\nProcess: {i}, Waiting Time: {waitingTime[i]}")
-        print(f"Average Waiting Time: {twt / len(processes)}")
+        print(f"Process: {i}, Waiting Time: {waitingTime[i]}")
+    print(f"Average Waiting Time: {twt / len(processes)}")
 
     # Printing turnaround time for each process
     print("\nTurnaround Time")
     ttat = sum(tat)
     for i in range(len(processes)):
-        print(f"\nProcess: {i}, Turnaround Time: {tat[i]}")
-        print(f"Average Turnaround Time: {ttat / len(processes)}")
+        print(f"Process: {i}, Turnaround Time: {tat[i]}")
+    print(f"Average Turnaround Time: {ttat / len(processes)}")
 
     # Printing response time for each process
     print("\nResponse Time")
     trt = sum(responseTime)
     for i in range(len(processes)):
-        print(f"\nProcess: {i}, Response Time: {responseTime[i]}")
-        print(f"Average Response Time: {trt / len(processes)}")
+        print(f"Process: {i}, Response Time: {responseTime[i]}")
+    print(f"Average Response Time: {trt / len(processes)}")
 
 # Function to print the current state of the queue
 def print_queue_state(q, processes, processBurstIndex):
